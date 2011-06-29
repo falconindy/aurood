@@ -76,7 +76,7 @@ pmhandle_t *alpm_init() {
       section[strlen(section) - 1] = 0;
 
       if (strcmp(section, "options") != 0) {
-        if (!alpm_db_register_sync(handle, section)) {
+        if (!alpm_db_register_sync(handle, section, PM_PGP_VERIFY_OPTIONAL)) {
           goto finish;
         }
       }
