@@ -8,11 +8,11 @@
 
 #include <alpm.h>
 
-static alpm_list_t *alpm_find_foreign_packages(pmhandle_t*);
-static pmpkg_t *alpm_provides_pkg(pmhandle_t*, const char*);
+static alpm_list_t *alpm_find_foreign_packages(alpm_handle_t*);
+static alpm_pkg_t *alpm_provides_pkg(alpm_handle_t*, const char*);
 static char *strtrim(char*);
-static pmhandle_t *alpm_init(void);
-static int alpm_pkg_is_foreign(pmhandle_t*, pmpkg_t*);
+static alpm_handle_t *alpm_init(void);
+static int alpm_pkg_is_foreign(alpm_handle_t*, alpm_pkg_t*);
 
 char *strtrim(char *str) {
   char *pch = str;
@@ -42,9 +42,9 @@ char *strtrim(char *str) {
   return str;
 }
 
-pmhandle_t *alpm_init() {
-  pmhandle_t *handle;
-  enum _pmerrno_t pmerr;
+alpm_handle_t *alpm_init() {
+  alpm_handle_t *handle;
+  enum _alpm_errno_t pmerr;
   FILE *fp;
   char line[PATH_MAX];
   char *ptr, *section = NULL;
@@ -89,7 +89,7 @@ finish:
   return handle;
 }
 
-int alpm_pkg_is_foreign(pmhandle_t *handle, pmpkg_t *pkg) {
+int alpm_pkg_is_foreign(alpm_handle_t *handle, alpm_pkg_t *pkg) {
   const char *pkgname = alpm_pkg_get_name(pkg);
 
   for (alpm_list_t *i = alpm_option_get_syncdbs(handle); i; i = alpm_list_next(i)) {
@@ -101,12 +101,12 @@ int alpm_pkg_is_foreign(pmhandle_t *handle, pmpkg_t *pkg) {
   return 1;
 }
 
-alpm_list_t *alpm_find_foreign_packages(pmhandle_t *handle) {
+alpm_list_t *alpm_find_foreign_packages(alpm_handle_t *handle) {
   alpm_list_t *ret = NULL;
-  pmdb_t *db_local = alpm_option_get_localdb(handle);
+  alpm_db_t *db_local = alpm_option_get_localdb(handle);
 
   for (alpm_list_t *i = alpm_db_get_pkgcache(db_local); i; i = alpm_list_next(i)) {
-    pmpkg_t *pkg = alpm_list_getdata(i);
+    alpm_pkg_t *pkg = alpm_list_getdata(i);
 
     if (alpm_pkg_is_foreign(handle, pkg)) {
       ret = alpm_list_add(ret, pkg);
@@ -116,11 +116,11 @@ alpm_list_t *alpm_find_foreign_packages(pmhandle_t *handle) {
   return ret;
 }
 
-pmpkg_t *alpm_provides_pkg(pmhandle_t *handle, const char *depstring) {
+alpm_pkg_t *alpm_provides_pkg(alpm_handle_t *handle, const char *depstring) {
 
   for (alpm_list_t *i = alpm_option_get_syncdbs(handle); i; i = alpm_list_next(i)) {
-    pmdb_t *db = alpm_list_getdata(i);
-    pmpkg_t *pkg = alpm_find_satisfier(alpm_db_get_pkgcache(db), depstring);
+    alpm_db_t *db = alpm_list_getdata(i);
+    alpm_pkg_t *pkg = alpm_find_satisfier(alpm_db_get_pkgcache(db), depstring);
     if (pkg) {
       return pkg;
     }
@@ -131,7 +131,7 @@ pmpkg_t *alpm_provides_pkg(pmhandle_t *handle, const char *depstring) {
 
 int main(void) {
   int ret = 0;
-  pmhandle_t *handle;
+  alpm_handle_t *handle;
   alpm_list_t *foreignpkgs;
   char *color_red, *color_green, *color_none;
 
@@ -155,13 +155,13 @@ int main(void) {
   foreignpkgs = alpm_find_foreign_packages(handle);
 
   for (alpm_list_t *i = foreignpkgs; i; i = alpm_list_next(i)) {
-    pmpkg_t *pkg = alpm_list_getdata(i);
+    alpm_pkg_t *pkg = alpm_list_getdata(i);
 
     for (alpm_list_t *j = alpm_pkg_get_provides(pkg); j; j = alpm_list_next(j)) {
       const char *provide, *provver, *pkgver;
 
       provide = alpm_list_getdata(j);
-      pmpkg_t *provider = alpm_provides_pkg(handle, provide);
+      alpm_pkg_t *provider = alpm_provides_pkg(handle, provide);
       if (!provider) {
         continue;
       }
