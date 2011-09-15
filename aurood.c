@@ -159,10 +159,10 @@ int main(void) {
     alpm_pkg_t *pkg = alpm_list_getdata(i);
 
     for (alpm_list_t *j = alpm_pkg_get_provides(pkg); j; j = alpm_list_next(j)) {
-      const char *provide, *provver, *pkgver;
+      const char *provver, *pkgver;
+      const alpm_depend_t *provide = alpm_list_getdata(j);
 
-      provide = alpm_list_getdata(j);
-      alpm_pkg_t *provider = alpm_provides_pkg(handle, provide);
+      alpm_pkg_t *provider = alpm_provides_pkg(handle, provide->name);
       if (!provider) {
         continue;
       }
