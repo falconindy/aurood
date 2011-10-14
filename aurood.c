@@ -94,7 +94,7 @@ int alpm_pkg_is_foreign(alpm_handle_t *handle, alpm_pkg_t *pkg) {
   const char *pkgname = alpm_pkg_get_name(pkg);
 
   for (alpm_list_t *i = alpm_option_get_syncdbs(handle); i; i = alpm_list_next(i)) {
-    if (alpm_db_get_pkg(alpm_list_getdata(i), pkgname)) {
+    if (alpm_db_get_pkg(i->data, pkgname)) {
       return 0;
     }
   }
@@ -107,7 +107,7 @@ alpm_list_t *alpm_find_foreign_packages(alpm_handle_t *handle) {
   alpm_db_t *db_local = alpm_option_get_localdb(handle);
 
   for (alpm_list_t *i = alpm_db_get_pkgcache(db_local); i; i = alpm_list_next(i)) {
-    alpm_pkg_t *pkg = alpm_list_getdata(i);
+    alpm_pkg_t *pkg = i->data;
 
     if (alpm_pkg_is_foreign(handle, pkg)) {
       ret = alpm_list_add(ret, pkg);
@@ -120,7 +120,7 @@ alpm_list_t *alpm_find_foreign_packages(alpm_handle_t *handle) {
 alpm_pkg_t *alpm_provides_pkg(alpm_handle_t *handle, const char *depstring) {
 
   for (alpm_list_t *i = alpm_option_get_syncdbs(handle); i; i = alpm_list_next(i)) {
-    alpm_db_t *db = alpm_list_getdata(i);
+    alpm_db_t *db = i->data;
     alpm_pkg_t *pkg = alpm_find_satisfier(alpm_db_get_pkgcache(db), depstring);
     if (pkg) {
       return pkg;
@@ -156,11 +156,11 @@ int main(void) {
   foreignpkgs = alpm_find_foreign_packages(handle);
 
   for (alpm_list_t *i = foreignpkgs; i; i = alpm_list_next(i)) {
-    alpm_pkg_t *pkg = alpm_list_getdata(i);
+    alpm_pkg_t *pkg = i->data;
 
     for (alpm_list_t *j = alpm_pkg_get_provides(pkg); j; j = alpm_list_next(j)) {
       const char *provver, *pkgver;
-      const alpm_depend_t *provide = alpm_list_getdata(j);
+      const alpm_depend_t *provide = j->data;
 
       alpm_pkg_t *provider = alpm_provides_pkg(handle, provide->name);
       if (!provider) {
